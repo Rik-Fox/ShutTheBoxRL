@@ -1,5 +1,5 @@
 `ShutTheBoxRL`
-# Using ReTraining a Deep Q-Network to Play Shut the Box using OpenAI Gym and ChatGPT
+# Training a Deep Q-Network to Play Shut the Box using OpenAI Gym and ChatGPT
 
 ## Introduction
 In this blog post, we will discuss how we trained a Deep Q-Network (DQN) to play the classic game of Shut the Box using OpenAI Gym, a popular framework for creating reinforcement learning environments. We built a custom environment for the game and trained a reinforcement learning (RL) agent to learn the optimal strategy. This project demonstrates how AI language models, such as ChatGPT, can be leveraged to generate code and accelerate research and development in reinforcement learning.
