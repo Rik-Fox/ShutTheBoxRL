@@ -14,6 +14,7 @@ done = False
 while not done:
     action, _ = model.predict(state, deterministic=True)
     state, reward, done, _ = env.step(action)
+    print(state)
     print(reward)
     if np.isnan(reward):
         raise ValueError("reward is NaN")

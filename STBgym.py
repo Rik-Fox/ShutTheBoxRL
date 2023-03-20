@@ -6,7 +6,7 @@ import numpy as np
 
 
 class ShutTheBoxEnv(gym.Env):
-    def __init__(self, seed=1234):
+    def __init__(self, seed=None):
         super(ShutTheBoxEnv, self).__init__()
         self.numbers = list(range(1, 10))
 
@@ -18,8 +18,10 @@ class ShutTheBoxEnv(gym.Env):
 
         self.action_space = spaces.Discrete(len(self.actions))
         self.observation_space = spaces.Box(
-            low=0, high=1, shape=(len(self.numbers) + 1,), dtype=np.uint8
+            low=0, high=1, shape=(len(self.numbers) + 1,), dtype=np.float16
         )
+        if seed is None:
+            seed = np.random.randint(1000)
         self.seed(seed=seed)
         self.dice_sum = None
 
