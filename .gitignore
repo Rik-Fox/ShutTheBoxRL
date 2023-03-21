@@ -133,4 +133,5 @@ dmypy.json
 logs/
 tb_logs/
 monitor/
+checkpoints/
 .history/

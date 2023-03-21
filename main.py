@@ -14,8 +14,8 @@ from STBgym import ShutTheBoxEnv
 
 def Main(args):
     wkdir = os.path.dirname(os.path.abspath(__file__))
-    cp_log_path = os.path.join(wkdir, "checkpoints/")
-    monitor_dir = os.path.join(wkdir, "monitor/")
+    cp_log_path = os.path.join(wkdir, f"checkpoints/{args.net_arch}_{args.model_name}/")
+    monitor_dir = os.path.join(wkdir, f"monitor/{args.net_arch}_{args.model_name}")
     tb_log_path = os.path.join(wkdir, f"tb_logs/{args.net_arch}_{args.model_name}")
 
     # Create a callback for evaluation during training
@@ -23,7 +23,7 @@ def Main(args):
         clbks.CheckpointCallback(
             10_000,
             cp_log_path,
-            name_prefix=f"{args.net_arch}_{args.model_name}_at",
+            name_prefix=f"model_at",
             verbose=1,
         ),
         clbks.StopTrainingOnMaxEpisodes(1_000_000_000, verbose=1),
