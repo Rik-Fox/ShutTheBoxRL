@@ -74,6 +74,8 @@ except:
         verbose=1,
         tensorboard_log=tb_log_path,
     )
+total_reward = 0
+done = False
 
 model.learn(
     total_timesteps=1_000_000_000,
@@ -83,6 +85,21 @@ model.learn(
     reset_num_timesteps=False,
 )
 
+# num_eps = 10000
+# rewards = []
+
+# for ep in range(num_eps):
+#     state = env.reset()
+#     while not done:
+#         action, _ = model.predict(state, deterministic=True)
+#         state, reward, done, _ = env.step(action)
+#         total_reward += reward
+#         # print(action)
+#     rewards.append(total_reward)
+#     if ep % 1000 == 0:
+#         print(f"avg reward: {np.mean(rewards[-100:])}")
+
+# Save the trained model
 model.save(
     save_path,
 )

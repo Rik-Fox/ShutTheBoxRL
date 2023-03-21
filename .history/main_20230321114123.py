@@ -74,6 +74,8 @@ except:
         verbose=1,
         tensorboard_log=tb_log_path,
     )
+total_reward = 0
+done = False
 
 model.learn(
     total_timesteps=1_000_000_000,
