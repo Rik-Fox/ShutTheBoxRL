@@ -21,4 +21,3 @@ while not done:
     total_reward += reward
 
 print(f"Total reward: {total_reward}")
-

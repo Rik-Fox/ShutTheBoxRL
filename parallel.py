@@ -60,23 +60,25 @@ callbacks = [
     clbks.StopTrainingOnMaxEpisodes(100000, verbose=1),
 ]
 
-model = DQN("MlpPolicy", env,
-        learning_rate=1e-4,
-        buffer_size=1_000_000,  # 1e6
-        learning_starts=50000,
-        batch_size=1024,
-        gamma=1.0,
-        train_freq=64,
-        gradient_steps=1,
-        replay_buffer_class=None,
-        replay_buffer_kwargs=None,
-        optimize_memory_usage=False,
-        target_update_interval=10000,
-        exploration_fraction=0.1,
-        exploration_initial_eps=1.0,
-        exploration_final_eps=0.05,
-        verbose=1, 
-        tensorboard_log=tb_log_path
+model = DQN(
+    "MlpPolicy",
+    env,
+    learning_rate=1e-4,
+    buffer_size=1_000_000,  # 1e6
+    learning_starts=50000,
+    batch_size=1024,
+    gamma=1.0,
+    train_freq=64,
+    gradient_steps=1,
+    replay_buffer_class=None,
+    replay_buffer_kwargs=None,
+    optimize_memory_usage=False,
+    target_update_interval=10000,
+    exploration_fraction=0.1,
+    exploration_initial_eps=1.0,
+    exploration_final_eps=0.05,
+    verbose=1,
+    tensorboard_log=tb_log_path,
 )
 # Train the agent
 model.learn(

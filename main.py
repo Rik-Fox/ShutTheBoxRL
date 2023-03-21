@@ -1,4 +1,3 @@
-
 import argparse
 import numpy as np
 import os
@@ -10,7 +9,9 @@ from stable_baselines3.common import utils
 from stable_baselines3 import DQN
 
 from STBgym import ShutTheBoxEnv
+
 # from custom_logging import CustomTrackingCallback
+
 
 def Main(args):
     wkdir = os.path.dirname(os.path.abspath(__file__))
@@ -26,11 +27,8 @@ def Main(args):
             name_prefix=f"model_at",
             verbose=1,
         ),
-        
-        
         clbks.StopTrainingOnMaxEpisodes(1_000_000_000, verbose=1),
     ]
-
 
     env = make_vec_env(
         ShutTheBoxEnv,
@@ -41,16 +39,20 @@ def Main(args):
     )
     # env = Monitor(env, monitor_dir)
     try:
-        m_s = os.listdir(os.path.join(wkdir,"final_model/"))
+        m_s = os.listdir(os.path.join(wkdir, "final_model/"))
         latest_m = np.max([int(m.split("_")[0]) for m in m_s])
 
-        load_path = os.path.join(wkdir, f"final_model/{latest_m}_{args.net_arch}_{args.model_name}")
-        save_path = os.path.join(wkdir, f"final_model/{latest_m+1}_{args.net_arch}_{args.model_name}")
-        
+        load_path = os.path.join(
+            wkdir, f"final_model/{latest_m}_{args.net_arch}_{args.model_name}"
+        )
+        save_path = os.path.join(
+            wkdir, f"final_model/{latest_m+1}_{args.net_arch}_{args.model_name}"
+        )
+
         model = DQN.load(load_path, env=env)
         model.verbose = 0
-        
-        # not sure if actually needed but I have 
+
+        # not sure if actually needed but I have
         # had to do this before so better safe than sorry
         model._episode_num = model._episode_num
         model._n_calls = model._n_calls
@@ -65,9 +67,10 @@ def Main(args):
             0,
         )
     except FileNotFoundError:
-            
-        save_path = os.path.join(wkdir, f"final_model/{0}_{args.net_arch}_{args.model_name}")
-        
+        save_path = os.path.join(
+            wkdir, f"final_model/{0}_{args.net_arch}_{args.model_name}"
+        )
+
         model = DQN(
             "MlpPolicy",
             env,
@@ -102,19 +105,27 @@ def Main(args):
         save_path,
     )
 
+
 if __name__ == "__main__":
-    
-    param_parser = argparse.ArgumentParser(description="ShutTheBoxRL")    
-    param_parser.add_argument("--model_name", type=str, default="dqn_shut_the_box",)
+    param_parser = argparse.ArgumentParser(description="ShutTheBoxRL")
+    param_parser.add_argument(
+        "--model_name",
+        type=str,
+        default="dqn_shut_the_box",
+    )
     param_parser.add_argument(
         "--net_arch",
         nargs="+",
         type=str,
         default=None,
-        help="List of NN layers to be built for a model"
+        help="List of NN layers to be built for a model",
     )
-    param_parser.add_argument("--verbose", type=int, default=0,)    
-    
-    args=param_parser.parse_args()
+    param_parser.add_argument(
+        "--verbose",
+        type=int,
+        default=0,
+    )
+
+    args = param_parser.parse_args()
 
     Main(args)
