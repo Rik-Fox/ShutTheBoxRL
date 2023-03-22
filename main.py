@@ -23,7 +23,6 @@ def Main(args):
     # set up the paths for the checkpoints, monitor and tensorboard logs
     cp_log_path = os.path.join(wkdir, "checkpoints", f"{arch_str}_{args.model_name}/")
     monitor_dir = os.path.join(wkdir, "monitor", f"{arch_str}_{args.model_name}")
-    tb_log_path = os.path.join(wkdir, "tb_logs", f"{arch_str}_{args.model_name}")
 
     # Create a callback for checkpoints during training
     callbacks = [
@@ -56,9 +55,12 @@ def Main(args):
         save_path = os.path.join(
             wkdir, "final_model", f"{latest_m+1}_{arch_str}_{args.model_name}"
         )
+        
+        tb_log_path = os.path.join(wkdir, "tb_logs", f"{latest_m+1}_{arch_str}_{args.model_name}")
 
         model = DQN.load(load_path, env=env)
-        model.verbose = 0
+        model.verbose = args.verbose
+        model.tensorboard_log = tb_log_path
 
         # not sure if actually needed but I have
         # had to do this before so better safe than sorry
@@ -69,6 +71,9 @@ def Main(args):
         model.replay_buffer = model.replay_buffer
         model.learning_starts = 0  # start learning immediately
         # model.load_replay_buffer(model.replay_buffer)
+        
+        # this is set so only explores when first created
+        #TODO: make these argparse args so is adaptable 
         model.exploration_schedule = utils.get_linear_fn(
             model.exploration_final_eps,
             model.exploration_final_eps,
@@ -80,6 +85,7 @@ def Main(args):
         save_path = os.path.join(
             wkdir, "final_model", f"{0}_{arch_str}_{args.model_name}"
         )
+        tb_log_path = os.path.join(wkdir, "tb_logs", f"{0}_{arch_str}_{args.model_name}")
 
         model = DQN(
             "MlpPolicy",
@@ -99,7 +105,7 @@ def Main(args):
             exploration_fraction=0.1,
             exploration_initial_eps=1.0,
             exploration_final_eps=0.05,
-            verbose=1,
+            verbose=args.verbose,
             tensorboard_log=tb_log_path,
         )
 
