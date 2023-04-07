@@ -4,7 +4,7 @@ import numpy as np
 from STBgym import ShutTheBoxEnv
 
 # Load the trained model
-model = DQN.load("final_model/dqn_shut_the_box")
+model = DQN.load("final_model/1_128_256_128_dqn_shut_the_box.zip")
 
 # Test the trained agent
 env = ShutTheBoxEnv()

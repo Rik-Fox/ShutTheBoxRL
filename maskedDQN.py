@@ -373,7 +373,6 @@ class MaskableDQN(OffPolicyAlgorithm):
         device: Union[th.device, str] = "auto",
         _init_setup_model: bool = True,
     ):
-
         super().__init__(
             policy,
             env,
@@ -741,7 +740,6 @@ class MaskableDQN(OffPolicyAlgorithm):
         """
 
         if not deterministic and np.random.rand() < self.exploration_rate:
-
             if not action_masks.dtype == np.bool:
                 action_masks = action_masks.astype(np.bool)
 
@@ -761,16 +759,24 @@ class MaskableDQN(OffPolicyAlgorithm):
                 if actions.shape == action_masks.shape:
                     action = np.array([np.random.choice(actions[action_masks])])
                 else:
-                    action = np.array(
-                        [
-                            np.random.choice(actions[action_masks[n]])
-                            for n in range(n_batch)
-                        ]
-                    )
+                    valid_actions = [actions[action_masks[n]] for n in range(n_batch)]
+                    action = np.array([], dtype=np.int32)
+                    for n in range(n_batch):
+                        # append dummy action if no valid actions
+                        # STBgym env will be done before it is applied
+                        if valid_actions[n].size == 0:
+                            action = np.append(
+                                action,
+                                np.random.choice(actions),
+                            )
+                        else:
+                            action = np.append(
+                                action,
+                                np.random.choice(valid_actions[n]),
+                            )
             else:
                 action = np.array([np.random.choice(actions[action_masks])])
         else:
-
             action, state = self.policy.predict(
                 observation,
                 state,
@@ -861,7 +867,6 @@ class MaskableDQN(OffPolicyAlgorithm):
         use_masking: bool = True,
         progress_bar: bool = False,
     ) -> SelfMaskableDQN:
-
         total_timesteps, callback = self._setup_learn(
             total_timesteps,
             callback,
@@ -897,7 +902,6 @@ class MaskableDQN(OffPolicyAlgorithm):
                 )
                 # Special case when the user passes `gradient_steps=0`
                 if gradient_steps > 0:
-
                     self.train(
                         batch_size=self.batch_size, gradient_steps=gradient_steps
                     )
@@ -940,10 +944,21 @@ class MaskableDQN(OffPolicyAlgorithm):
 
             # self.action_dist.sample()
 
-            # valid_actions =
-            unscaled_action = np.array(
-                [np.random.choice(actions[action_masks[n]]) for n in range(n_envs)]
-            )
+            valid_actions = [actions[action_masks[n]] for n in range(n_envs)]
+            unscaled_action = np.array([], dtype=np.int32)
+            for n in range(n_envs):
+                # append dummy action if no valid actions
+                # STBgym env will be done before it is applied
+                if valid_actions[n].size == 0:
+                    unscaled_action = np.append(
+                        unscaled_action,
+                        np.random.choice(actions),
+                    )
+                else:
+                    unscaled_action = np.append(
+                        unscaled_action,
+                        np.random.choice(valid_actions[n]),
+                    )
         else:
             # Note: when using continuous actions,
             # we assume that the policy uses tanh to scale the action
