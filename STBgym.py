@@ -88,3 +88,8 @@ class ShutTheBoxEnv(gym.Env):
                 if sum(combination) == dice_sum:
                     valid_moves.append(combination)
         return valid_moves
+    
+    def action_masks(self):
+        valid_moves = self.get_valid_moves(self.dice_sum)
+        
+        return [move in valid_moves for move in self.actions]

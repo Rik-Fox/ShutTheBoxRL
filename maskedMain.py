@@ -1,15 +1,24 @@
 import argparse
 import numpy as np
 import os
+import gym
 
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.env_util import make_vec_env
 import stable_baselines3.common.callbacks as clbks
 from stable_baselines3.common import utils
-from stable_baselines3 import DQN
+
+from sb3_contrib.common.wrappers import ActionMasker
+from maskedDQN import MaskableDQNPolicy, MaskableDQN
 
 from STBgym import ShutTheBoxEnv
 
+
+def mask_fn(env: gym.Env) -> np.ndarray:
+    # Do whatever you'd like in this function to return the action mask
+    # for the current env. In this example, we assume the env has a
+    # helpful method we can rely on.
+    return env.action_masks()
 
 def Main(args):
     wkdir = os.path.dirname(os.path.abspath(__file__))
@@ -21,19 +30,21 @@ def Main(args):
     arch_str = arch_str[1:]
 
     # set up the paths for the checkpoints, monitor and tensorboard logs
-    cp_log_path = os.path.join(wkdir, "checkpoints", f"{arch_str}_{args.model_name}/")
-    monitor_dir = os.path.join(wkdir, "monitor", f"{arch_str}_{args.model_name}")
+    cp_log_path = os.path.join(wkdir, "checkpoints", f"{args.model_name}_{arch_str}/")
+    monitor_dir = os.path.join(wkdir, "monitor", f"{args.model_name}_{arch_str}")
 
-    # Create the environment
+    # Create the environment    
     env = make_vec_env(
         ShutTheBoxEnv,
-        n_envs=200,
+        50,
+        env_kwargs=None,
+        wrapper_class=ActionMasker,
+        wrapper_kwargs={"action_mask_fn": mask_fn},
+        seed=1234,
         monitor_dir=monitor_dir,
-        # vec_env_cls=SubprocVecEnv,
-        # vec_env_kwargs={"start_method": "fork"},
     )
-    
-    
+    # env = ActionMasker(env, mask_fn)  # Wrap to enable masking
+    env.reset()
     
     # Create a callback for checkpoints during training
     callbacks = [
@@ -52,15 +63,15 @@ def Main(args):
         latest_m = np.max([int(m.split("_")[0]) for m in m_s])
 
         load_path = os.path.join(
-            wkdir, "final_model", f"{latest_m}_{arch_str}_{args.model_name}"
+            wkdir, "final_model", f"{latest_m}_{args.model_name}_{arch_str}"
         )
         save_path = os.path.join(
-            wkdir, "final_model", f"{latest_m+1}_{arch_str}_{args.model_name}"
+            wkdir, "final_model", f"{latest_m+1}_{args.model_name}_{arch_str}"
         )
         
-        tb_log_path = os.path.join(wkdir, "tb_logs", f"{latest_m+1}_{arch_str}_{args.model_name}")
+        tb_log_path = os.path.join(wkdir, "tb_logs", f"{latest_m+1}_{args.model_name}_{arch_str}")
         
-        model = DQN.load(load_path, env=env)
+        model = MaskableDQN.load(load_path, env=env)
         model.verbose = args.verbose
         model.tensorboard_log = tb_log_path
 
@@ -85,21 +96,21 @@ def Main(args):
     except FileNotFoundError:
         # save path for the final model
         save_path = os.path.join(
-            wkdir, "final_model", f"{0}_{arch_str}_{args.model_name}"
+            wkdir, "final_model", f"{0}_{args.model_name}_{arch_str}"
         )
-        tb_log_path = os.path.join(wkdir, "tb_logs", f"{0}_{arch_str}_{args.model_name}")
-
-        model = DQN(
-            "MlpPolicy",
+        tb_log_path = os.path.join(wkdir, "tb_logs", f"{0}_{args.model_name}_{arch_str}")
+        
+        model = MaskableDQN(
+            MaskableDQNPolicy,
             env,
             learning_rate=1e-4,
             buffer_size=1_000_000,  #  replay buffer size
             learning_starts=50_000,  # number of steps before learning starts
             batch_size=1024,
-            gamma=1.0,
+            tau=1.0,
+            gamma=0.99,
             train_freq=64,
             gradient_steps=1,
-            policy_kwargs={"net_arch": args.net_arch},  # NN architecture
             replay_buffer_class=None,
             replay_buffer_kwargs=None,
             optimize_memory_usage=False,
@@ -107,8 +118,12 @@ def Main(args):
             exploration_fraction=0.1,
             exploration_initial_eps=1.0,
             exploration_final_eps=0.05,
-            verbose=args.verbose,
             tensorboard_log=tb_log_path,
+            policy_kwargs={"net_arch": args.net_arch},  # NN architecture
+            verbose=args.verbose,
+            seed=1234,
+            device="auto",
+            _init_setup_model=True,
         )
 
     model.learn(
@@ -122,20 +137,19 @@ def Main(args):
     model.save(
         save_path,
     )
-
-
+    
 if __name__ == "__main__":
     param_parser = argparse.ArgumentParser(description="ShutTheBoxRL")
     param_parser.add_argument(
         "--model_name",
         type=str,
-        default="dqn_shut_the_box",
+        default="maskableDQN_stb",
     )
     param_parser.add_argument(
         "--net_arch",
         nargs="+",
         type=list,
-        default=[128, 256, 128],
+        default=[64, 128, 64],
         help="List of NN layers to be built for a model",
     )
     param_parser.add_argument(
