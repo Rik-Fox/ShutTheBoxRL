@@ -20,6 +20,7 @@ def mask_fn(env: gym.Env) -> np.ndarray:
     # helpful method we can rely on.
     return env.action_masks()
 
+
 def Main(args):
     wkdir = os.path.dirname(os.path.abspath(__file__))
     # build the architecture string
@@ -33,7 +34,7 @@ def Main(args):
     cp_log_path = os.path.join(wkdir, "checkpoints", f"{args.model_name}_{arch_str}/")
     monitor_dir = os.path.join(wkdir, "monitor", f"{args.model_name}_{arch_str}")
 
-    # Create the environment    
+    # Create the environment
     env = make_vec_env(
         ShutTheBoxEnv,
         50,
@@ -45,7 +46,7 @@ def Main(args):
     )
     # env = ActionMasker(env, mask_fn)  # Wrap to enable masking
     env.reset()
-    
+
     # Create a callback for checkpoints during training
     callbacks = [
         clbks.CheckpointCallback(
@@ -68,9 +69,11 @@ def Main(args):
         save_path = os.path.join(
             wkdir, "final_model", f"{latest_m+1}_{args.model_name}_{arch_str}"
         )
-        
-        tb_log_path = os.path.join(wkdir, "tb_logs", f"{latest_m+1}_{args.model_name}_{arch_str}")
-        
+
+        tb_log_path = os.path.join(
+            wkdir, "tb_logs", f"{latest_m+1}_{args.model_name}_{arch_str}"
+        )
+
         model = MaskableDQN.load(load_path, env=env)
         model.verbose = args.verbose
         model.tensorboard_log = tb_log_path
@@ -84,9 +87,9 @@ def Main(args):
         model.replay_buffer = model.replay_buffer
         model.learning_starts = 0  # start learning immediately
         # model.load_replay_buffer(model.replay_buffer)
-        
+
         # this is set so only explores when first created
-        #TODO: make these argparse args so is adaptable 
+        # TODO: make these argparse args so is adaptable
         model.exploration_schedule = utils.get_linear_fn(
             model.exploration_final_eps,
             model.exploration_final_eps,
@@ -98,8 +101,10 @@ def Main(args):
         save_path = os.path.join(
             wkdir, "final_model", f"{0}_{args.model_name}_{arch_str}"
         )
-        tb_log_path = os.path.join(wkdir, "tb_logs", f"{0}_{args.model_name}_{arch_str}")
-        
+        tb_log_path = os.path.join(
+            wkdir, "tb_logs", f"{0}_{args.model_name}_{arch_str}"
+        )
+
         model = MaskableDQN(
             MaskableDQNPolicy,
             env,
@@ -107,7 +112,7 @@ def Main(args):
             buffer_size=1_000_000,  #  replay buffer size
             learning_starts=50_000,  # number of steps before learning starts
             batch_size=1024,
-            tau=1.0,
+            tau=1.0,  # target network update rate (1 for hard update)
             gamma=0.99,
             train_freq=64,
             gradient_steps=1,
@@ -115,7 +120,7 @@ def Main(args):
             replay_buffer_kwargs=None,
             optimize_memory_usage=False,
             target_update_interval=10_000,  # update the target network every 10_000 steps
-            exploration_fraction=0.1,
+            exploration_fraction=0.01,
             exploration_initial_eps=1.0,
             exploration_final_eps=0.05,
             tensorboard_log=tb_log_path,
@@ -127,7 +132,7 @@ def Main(args):
         )
 
     model.learn(
-        total_timesteps=1_000_000_000,
+        total_timesteps=9_000_000,
         callback=callbacks,
         log_interval=100,
         tb_log_name=tb_log_path,
@@ -137,7 +142,8 @@ def Main(args):
     model.save(
         save_path,
     )
-    
+
+
 if __name__ == "__main__":
     param_parser = argparse.ArgumentParser(description="ShutTheBoxRL")
     param_parser.add_argument(

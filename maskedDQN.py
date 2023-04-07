@@ -690,7 +690,7 @@ class MaskableDQN(OffPolicyAlgorithm):
                 self.num_timesteps, self._total_timesteps
             )
 
-            # For DQN, check if the target network should be updated
+            # For DQN, _on_step should check if the target network should be updated
             # and update the exploration schedule
             # For SAC/TD3, the update is dones as the same time as the gradient update
             # see https://github.com/hill-a/stable-baselines/issues/900
