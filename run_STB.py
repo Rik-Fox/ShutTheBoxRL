@@ -1,10 +1,12 @@
 import gym
 from stable_baselines3 import DQN
 import numpy as np
+
+from maskedDQN import MaskableDQNPolicy, MaskableDQN
 from STBgym import ShutTheBoxEnv
 
 # Load the trained model
-model = DQN.load("final_model/1_128_256_128_dqn_shut_the_box.zip")
+model = MaskableDQN.load("/home/rawsys/mathgw/ShutTheBoxRL/final_model/1_maskableDQN_stb_64_128_64.zip")
 
 # Test the trained agent
 env = ShutTheBoxEnv()

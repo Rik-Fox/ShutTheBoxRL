@@ -91,9 +91,9 @@ def Main(args):
         # this is set so only explores when first created
         # TODO: make these argparse args so is adaptable
         model.exploration_schedule = utils.get_linear_fn(
+            0.5,
             model.exploration_final_eps,
-            model.exploration_final_eps,
-            0,
+            0.01,
         )
     # if the model does not exist, create a new one
     except FileNotFoundError:
@@ -120,7 +120,7 @@ def Main(args):
             replay_buffer_kwargs=None,
             optimize_memory_usage=False,
             target_update_interval=10_000,  # update the target network every 10_000 steps
-            exploration_fraction=0.01,
+            exploration_fraction=0.1,
             exploration_initial_eps=1.0,
             exploration_final_eps=0.05,
             tensorboard_log=tb_log_path,
@@ -132,7 +132,7 @@ def Main(args):
         )
 
     model.learn(
-        total_timesteps=9_000_000,
+        total_timesteps=90_000_000,
         callback=callbacks,
         log_interval=100,
         tb_log_name=tb_log_path,

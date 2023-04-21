@@ -132,6 +132,7 @@ dmypy.json
 # logs
 logs/
 tb_logs/
+nonMask_tb_logs/
 monitor/
 checkpoints/
 .history/
